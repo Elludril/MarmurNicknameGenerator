@@ -1,36 +1,25 @@
 import streamlit as st
-import requests
+from openai import OpenAI
 
-# Access the Llama 3 API key from Streamlit secrets
-llama_api_key = st.secrets["LLAMA_API_KEY"]
+# Access the OpenAI API key from Streamlit secrets
+client = OpenAI(
+    api_key=st.secrets["OPENAI_API_KEY"],
+    base_url="https://api.aimlapi.com"
+)
 
 st.title('Marmur Nickname Generator')
-
 theme = st.text_input('Wpisz temat dla nicków')
-
-def generate_nicknames_llama(theme):
-    headers = {
-        'Authorization': f'Bearer {llama_api_key}',
-        'Content-Type': 'application/json'
-    }
-    payload = {
-        "model": "llama-3-model",  # Replace with actual model name if different
-        "messages": [
-            {"role": "user", "content": f"Generate creative nicknames for the following users based on the theme: {theme}. Here are the users:\n- Ada\n- Adam\n- Ala\n- Asia\n- Daria\n- Ewa\n- Efa\n- Fifi\n- Gromek\n- Inez\n- Kewin\n- Krzysiu\n- Kuba\n- Bogóh\n- Koper\n- Maciuś\n- Sikor\n- Manuela\n- Marta\n- Martyna\n- Tysia\n- Fapu\n- Nasio\n- Nat\n- Natalka\n- Nina\n- Daniel\n- Paweł\n- Piotr\n- Przemek\n- Rafał\n- Tomek\n- Wojtas"}
-        ]
-    }
-    response = requests.post("https://api.llama3.com/v1/chat/completions", headers=headers, json=payload)
-    return response.json()
-
 if st.button('OGIYŃ 🔥'):
     if theme:
-        try:
-            # Use Llama 3 API to generate nicknames
-            response = generate_nicknames_llama(theme)
-            # Extract message content
-            nicknames = response['choices'][0]['message']['content'].strip()
-            st.write(nicknames)
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+        # Use OpenAI to generate nicknames
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": f"Please assign the name based on the theme for the following users. If it's possible, use character names. No duplicates are allowed. Here is the theme: {theme}. Here are the users:\n- Ada\n- Adam\n- Ala\n- Asia\n- Daria\n- Ewa\n- Efa\n- Fifi\n- Gromek\n- Inez\n- Kewin\n- Krzysiu\n- Kuba\n- Bogóh\n- Koper\n- Maciuś\n- Sikor\n- Manuela\n- Marta\n- Martyna\n- Tysia\n- Fapu\n- Nasio\n- Nat\n- Natalka\n- Nina\n- Daniel\n- Paweł\n- Piotr\n- Przemek\n- Rafał\n- Tomek\n- Wojtas\nPlease write the answer in Polish. Skip original message before translation."}
+            ],
+        )
+        # Correctly access the message content
+        nicknames = response.choices[0].message.content
+        st.write(nicknames)
     else:
         st.error('Wpisz temat!')
